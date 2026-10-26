@@ -197,6 +197,63 @@
             line-height: 1.5;
         }
 
+        .scroll-hint {
+            position: fixed;
+            z-index: 1002;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 9px 16px;
+            border: 1px solid rgba(83, 6, 63, 0.28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #53063f;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-decoration: none;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translate(-50%, 8px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+        }
+
+        .scroll-hint.is-visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translate(-50%, 0);
+        }
+
+        .scroll-hint__arrow {
+            font-size: 20px;
+            line-height: 1;
+            animation: scroll-hint-bounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes scroll-hint-bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(5px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-hint,
+            .scroll-hint__arrow {
+                animation: none;
+                transition: none;
+            }
+        }
+
         @media screen and (max-width: 479px) {
             .children-policy {
                 gap: 14px;
@@ -1073,6 +1130,11 @@
                                 </svg>
                             </div>
                         </div>
+                        <a id="scroll-hint" class="scroll-hint" href="#rec2339662063"
+                            aria-label="Faire défiler vers la suite de l’invitation">
+                            <span>DÉFILER</span>
+                            <span class="scroll-hint__arrow" aria-hidden="true">↓</span>
+                        </a>
                         <script>
                             function waitForButton(selector, callback) {
                                 const button = document.querySelector(selector);
@@ -1087,6 +1149,8 @@
                                 const audioControl = document.getElementById('audio-control');
                                 const iconPlay = document.getElementById('icon-play');
                                 const iconPause = document.getElementById('icon-pause');
+                                const scrollHint = document.getElementById('scroll-hint');
+                                let scrollHintTimer;
                                 enterButton.addEventListener('click', function () {
                                     audio.muted = false;
                                     audio.play().then(() => {
@@ -1096,7 +1160,22 @@
                                     ).catch(err => console.log('Audio play failed:', err));
                                     audioControl.style.visibility = 'visible';
                                     audioControl.style.opacity = '1';
+                                    window.clearTimeout(scrollHintTimer);
+                                    scrollHintTimer = window.setTimeout(() => {
+                                        if (scrollHint && window.scrollY < 80) {
+                                            scrollHint.classList.add('is-visible');
+                                        }
+                                    }, 4500);
                                 });
+                                if (scrollHint) {
+                                    scrollHint.addEventListener('click', function (event) {
+                                        const nextSection = document.getElementById('rec2339662063');
+                                        if (nextSection) {
+                                            event.preventDefault();
+                                            nextSection.scrollIntoView({ behavior: 'smooth' });
+                                        }
+                                    });
+                                }
                                 audioControl.addEventListener('click', function () {
                                     if (audio.paused) {
                                         audio.play();
